@@ -235,8 +235,8 @@ class EnvoyCommitIntegrationStep(enum.Enum):
   PATCH_SHARED_FILES = enum.auto()
   FIX_FORMAT = enum.auto()
   BAZEL_UPDATE_REQUIREMENTS = enum.auto()
-  UPDATE_CLI_README = enum.auto()
   TEST_NIGHTHAWK = enum.auto()
+  UPDATE_CLI_README = enum.auto()
 
 
 class EnvoyCommitIntegration(StepHandler[EnvoyCommitIntegrationStep]):
@@ -330,13 +330,13 @@ class EnvoyCommitIntegration(StepHandler[EnvoyCommitIntegrationStep]):
             ["bazel", "run", "//tools/base:requirements.update"],
             cwd=self.nighthawk_dir,
         )
+      case EnvoyCommitIntegrationStep.TEST_NIGHTHAWK:
+        _run_command(["./ci/do_ci.sh", "test"], cwd=self.nighthawk_dir)
       case EnvoyCommitIntegrationStep.UPDATE_CLI_README:
         _run_command(
             ["./tools/update_cli_readme_documentation.sh", "--mode=fix"],
             cwd=self.nighthawk_dir,
         )
-      case EnvoyCommitIntegrationStep.TEST_NIGHTHAWK:
-        _run_command(["./ci/do_ci.sh", "test"], cwd=self.nighthawk_dir)
       case _:
         raise ValueError(f"{step} is not supported.")
 
@@ -491,10 +491,9 @@ class NighthawkEnvoyUpdate(StepHandler[NighthawkEnvoyUpdateStep]):
                 "git",
                 "clone",
                 f"--depth={self.envoy_clone_depth}",
-                "git@github.com:envoyproxy/envoy.git",
+                "https://github.com/envoyproxy/envoy.git",
                 str(self.envoy_dir),
             ],
-            interactive=True,
         )
       case NighthawkEnvoyUpdateStep.CHECK_ENVOY_CLONE_DEPTH:
         try:
