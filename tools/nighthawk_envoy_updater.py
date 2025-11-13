@@ -460,6 +460,7 @@ class NighthawkEnvoyUpdate(StepHandler[NighthawkEnvoyUpdateStep]):
       branch_name: str,
       envoy_clone_depth: int,
       sync_nighthawk_repo: bool,
+      skip_bisection: bool,
       agent_invocation: str | None = None,
   ):
     """Initialize the NighthawkEnvoyUpdate.
@@ -476,6 +477,7 @@ class NighthawkEnvoyUpdate(StepHandler[NighthawkEnvoyUpdateStep]):
     self.nighthawk_git_repo_dir = nighthawk_git_repo_dir.expanduser()
     self.branch_name = branch_name
     self.envoy_clone_depth = envoy_clone_depth
+    self.skip_bisection = skip_bisection
 
     self._envoy_tmp_dir = tempfile.TemporaryDirectory(dir=self.nighthawk_git_repo_dir.parent,
                                                       prefix="envoy-clone-")
@@ -630,8 +632,8 @@ class NighthawkEnvoyUpdate(StepHandler[NighthawkEnvoyUpdateStep]):
       case NighthawkEnvoyUpdateStep.FIND_LATEST_TRIVIAL_MERGE:
         statuses = [" " * 8] * len(self.envoy_commits_current_to_latest)
 
-        low = 0
         high = len(self.envoy_commits_current_to_latest) - 1
+        low = high if self.skip_bisection else 0
         latest_passing_commit_index = -1
 
         # Start by testing the latest commit
@@ -781,6 +783,12 @@ def main() -> None:
             " the upstream remote before starting the update process."),
   )
   parser.add_argument(
+      "--skip_bisection",
+      action="store_false",
+      dest="skip_bisection",
+      help=("If set, the script will only attempt to merge the latest Envoy commit."),
+  )
+  parser.add_argument(
       "--agent_invocation",
       type=str,
       default=None,
@@ -794,6 +802,7 @@ def main() -> None:
       branch_name=args.branch_name,
       envoy_clone_depth=args.envoy_clone_depth,
       sync_nighthawk_repo=args.sync_nighthawk_repo,
+      skip_bisection=args.skip_bisection,
       agent_invocation=args.agent_invocation,
   )
   try:
