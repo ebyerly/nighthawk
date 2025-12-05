@@ -310,6 +310,10 @@ export BAZEL_TEST_OPTIONS="${BAZEL_BUILD_OPTIONS} \
 --test_env=UBSAN_OPTIONS=print_stacktrace=1 \
 --cache_test_results=no --test_output=errors ${BAZEL_EXTRA_TEST_OPTIONS}"
 
+# this is not ideal and should be removed once https://github.com/envoyproxy/envoy/issues/38951
+# is resolved
+export CARGO_BAZEL_REPIN=true
+
 case "$1" in
     build)
         setup_clang_toolchain
